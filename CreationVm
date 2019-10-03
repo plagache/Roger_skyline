@@ -15,7 +15,7 @@ VBoxManage createvm --name $vmname --ostype debian_64 --register
 
 VBoxManage modifyvm $vmname --memory 2048 --vram 128
 
-VBoxManage createmedium disk --filename "$vmpath/$vmname.vmdk" --sizebyte 8000000000 --format vmdk
+VBoxManage createmedium disk --filename "$vmpath/$vmname.vmdk" --sizebyte 8000000000 --format vmdk --variant fixed
 
 VBoxManage storagectl $vmname --name "SATA Controller" --add sata --controller IntelAhci
 
