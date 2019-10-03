@@ -2,21 +2,27 @@
 
 #Creation de Vm
 
-#$1 = nom de la Vm
-#$2 = path for the vdmk storage
-#$3 = path to the ISO
+read -p "What is the name of the VM you want to create ?
+		" vmname
 
+read -p "What is the path where you want to create the Vm ?
+		" vmpath
 
-VBoxManage createvm --name $1 --ostype debian --register
+read -p "What is the path for the iso of the Vm ?
+		" isopath
 
-VBoxManage modifyvm $1 --memory 2048 --vram 128
+VBoxManage createvm --name $vmname --ostype debian_64 --register
 
-VBoxManage createmedium disk --filename "$2/$1.vmdk" --format vmdk --size 8000
+VBoxManage modifyvm $vmname --memory 2048 --vram 128
 
-VBoxManage storagectl $1 --name "SATA Controller" --add sata --controller IntelAhci
+VBoxManage createmedium disk --filename "$vmpath/$vmname.vmdk" --sizebyte 8000000000 --format vmdk
 
-VBoxManage storageattach $1 --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium "$2/$1.vmdk"
+VBoxManage storagectl $vmname --name "SATA Controller" --add sata --controller IntelAhci
 
-VBoxManage storagectl $1 --name "IDE Controller" --add ide --controller PIIX4
+VBoxManage storageattach $vmname --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium "$vmpath/$vmname.vmdk"
 
-VBoxManage storageattach $1 --storagectl "IDE Controller" --port 1 --device 0 --type dvddrive --medium "$3"
+VBoxManage storagectl $vmname --name "IDE Controller" --add ide --controller PIIX4
+
+VBoxManage storageattach $vmname --storagectl "IDE Controller" --port 1 --device 0 --type dvddrive --medium "$isopath"
+
+printf "The Vm was successfully installed.\n"

@@ -3,37 +3,9 @@
 
 ## PARTIE 1 : Installation
 
-You can install the Vm with VBoxManage.
+I recommand using my script to install the Vm, if you want to understand whats happening you can read it, but it's very simple.
 
-```
-VBoxManage createvm --name NAME_VM --ostype debian --register
-```
-
-Then you need to modify the VM for your convenience.
-```
-VBoxManage modifyvm NAME_VM --memory 2048 --vram 128
-```
-
-Then you need to create a drive for this Vm (use vmdk if you want a crossapplication Vm).
-```
-VBoxManage createmedium disk --filename "path/Vm/NAME_VM.vmdk" --format vmdk --size 8000
-```
-
-Then attached the drive you create to your Vm.
-```
-VBoxManage storagectl NAME_VM --name "SATA Controller" --add sata --controller IntelAhci
-VBoxManage storageattach NAME_VM --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium "path/Vm/NAME_VM.vmdk"
-```
-
-Finaly we need to attach a ISO to the Vm.
-```
-VBoxManage storagectl NAME_VM --name "IDE Controller" --add ide --controller PIIX4
-VBoxManage storageattach NAME_VM --storagectl "IDE Controller" --port 1 --device 0 --type dvddrive --medium "path/to/ISO/DEBIAN.iso"
-```
-Before launching virtuall-machine. Go to files -> Host Network Manager. Create a connexion and uncomment DHCP server.
-You now have a vboxnet0 host with the ip address 192.168.56.1/24
-
-Then go in the settings of the machine you create : Settings-> network. for card 1 let NAT connexion, for card 2 activate the mode "host only adaptater". It will be by default on the vboxnet0.
+During the installation
 
 create * 4.501gb partition for /
 	   * 1gb for /swap
