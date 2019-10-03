@@ -1,0 +1,22 @@
+#! /bin/bash
+
+#Creation de Vm
+
+#$1 = nom de la Vm
+#$2 = path for the vdmk storage
+#$3 = path to the ISO
+
+
+VBoxManage createvm --name $1 --ostype debian --register
+
+VBoxManage modifyvm $1 --memory 2048 --vram 128
+
+VBoxManage createmedium disk --filename "$2/$1.vmdk" --format vmdk --size 8000
+
+VBoxManage storagectl $1 --name "SATA Controller" --add sata --controller IntelAhci
+
+VBoxManage storageattach $1 --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium "$2/$1.vmdk"
+
+VBoxManage storagectl $1 --name "IDE Controller" --add ide --controller PIIX4
+
+VBoxManage storageattach $1 --storagectl "IDE Controller" --port 1 --device 0 --type dvddrive --medium "$3"
