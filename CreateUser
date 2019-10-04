@@ -1,0 +1,34 @@
+#! /bin/bash
+# Script that create Users
+
+
+if [ "$EUID" -ne 0 ]
+  then printf "\033[31mPlease run as root.\n"
+  exit
+fi
+
+clear
+read -p "What is the username for the user you want to create ?
+		" username
+clear
+
+read -r -p "Do you want this user to be root? [y/N] " response
+case "$response" in
+    [yY][eE][sS]|[yY])
+CreateUser=$(sudo useradd -g sudo -s /bin/bash -m "$username")
+        ;;
+    *)
+CreateUser=$(sudo useradd -s /bin/bash -m "$username")
+        ;;
+esac
+
+######################
+##  User Creation	##
+######################
+
+CreatePass=$(sudo passwd "$username")
+if [ $(getent passwd $username) == 2 ]
+	then
+		CreateUser
+		CreatePass
+fi

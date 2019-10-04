@@ -14,21 +14,7 @@ create * 4.501gb partition for /
 Do not install firefox or anything useless
 
 ```
-apt install -y vim sudo net-tools iptables-persistent fail2ban sendmail apache2
-```
-
-```
-vim /etc/ssh/sshd_config
-```
-
-modify port 2222 for ssh.
-
-uncomment ligne :
-
-```
-PAsswordAuthentification yes
-PermitRootlogin prohibit passwd and replace for no
-PubkeyAuthentification yes
+apt install -y neovim sudo net-tools iptables-persistent fail2ban sendmail apache2 git network-manager
 ```
 
 create a new interfaces : 
@@ -61,6 +47,8 @@ netmask 255.255.255.252
 
 create a new user with a home, a specified shell, and a specific group :
 
+or you can use the Script.
+
 ```
 sudo useradd -g sudo -s /bin/bash -m username
 ```
@@ -69,6 +57,21 @@ reboot
 
 ## PARTIE 2 : SSH
 
+For the ssh part we have certain rules to respect
+
+```
+vim /etc/ssh/sshd_config
+```
+
+modify port 2222 for ssh.
+
+uncomment ligne :
+
+```
+PAsswordAuthentification yes
+PermitRootlogin prohibit passwd and replace for no
+PubkeyAuthentification yes
+```
 In the host terminal generate ssh key:
 
 ```

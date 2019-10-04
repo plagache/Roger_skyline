@@ -2,20 +2,48 @@
 
 #Creation de Vm
 
+clear
 read -p "What is the name of the VM you want to create ?
 		" vmname
+clear
 
 read -p "What is the path where you want to create the Vm ?
 		" vmpath
+clear
 
 read -p "What is the path for the iso of the Vm ?
 		" isopath
+clear
+
+read -p "How much RAM should the new virtual machine use(in GO)?
+		" ramsize
+ramsize=$(($ramsize * 1024))
+
+clear
+
+read -p "How much CPU cores should the new virtual machine use?
+		" cpucores
+clear
+
+read -p "How much storage should the new virtual machine use(in GO)?
+		" disksize
+disksize=$disksize"000000000"
+
+clear
+
+read -p "How much Video Ram should the new virtual machine use(from 1 to 128)?
+		" vram
+clear
 
 VBoxManage createvm --name $vmname --ostype debian_64 --register
 
-VBoxManage modifyvm $vmname --memory 2048 --vram 128
+VBoxManage modifyvm $vmname --memory $ramsize --vram $vram
 
-VBoxManage createmedium disk --filename "$vmpath/$vmname.vmdk" --sizebyte 8000000000 --format vmdk --variant fixed
+VBoxManage modifyvm $vmname --cpus $cpucores
+
+VBoxManage modifyvm $vmname --nic1 bridged --bridgeadapter1 en0
+
+VBoxManage createmedium disk --filename "$vmpath/$vmname.vmdk" --sizebyte $disksize --format vmdk --variant fixed
 
 VBoxManage storagectl $vmname --name "SATA Controller" --add sata --controller IntelAhci
 
@@ -25,4 +53,22 @@ VBoxManage storagectl $vmname --name "IDE Controller" --add ide --controller PII
 
 VBoxManage storageattach $vmname --storagectl "IDE Controller" --port 1 --device 0 --type dvddrive --medium "$isopath"
 
-printf "The Vm was successfully installed.\n"
+
+clear
+read -r -p "The Vm was successfully created.
+			Would you like to run the Vm right now? [y/N]
+			" response
+case "$response" in
+    [yY][eE][sS]|[yY])
+
+printf "Running Vm.\n"
+
+VBoxManage startvm $vmname
+
+		;;
+	*)
+
+		printf "You can either run the Vm with VBoxManage startvm $vmname, or manualy.\n"
+
+		;;
+esac
