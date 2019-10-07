@@ -11,9 +11,19 @@ During the installation :
 * 1gb for /swap
 * rest for /home
 
+First we need to install our tools :
+
 ```
 apt install -y neovim sudo iptables-persistent fail2ban sendmail apache2 git
 ```
+
+Then we need to create a new user with a specific group, a specified shell, and a home :
+
+```
+sudo useradd -g sudo -s /bin/bash -m username
+```
+
+or you can use the Script CreateUser.
 
 create a new interfaces : 
 
@@ -38,33 +48,20 @@ iface enp0s3 inet static
 	gateway 10.11.254.254
 ```
 
-create a new user with a home, a specified shell, and a specific group :
-
-```
-sudo useradd -g sudo -s /bin/bash -m username
-```
-
-or you can use the Script CreateUser.
-
-reboot
+You may now reboot and loggued as the new user.(we restart the networking-services in the same time)
 
 ## PARTIE 2 : SSH
 
 For the ssh part we have certain rules to respect
 
 ```
-vim /etc/ssh/sshd_config
+sudo nvim /etc/ssh/sshd_config
 ```
 
-modify port 2222 for ssh.
+* First we need to change the default port, ``` port 2222 ```
+* Then Disable the access with password,    ``` PasswordAuthentification no ```
+* and finaly prevent root login :			  ``` PermitRootlogin no ```
 
-uncomment ligne :
-
-```
-PAsswordAuthentification yes
-PermitRootlogin prohibit passwd and replace for no
-PubkeyAuthentification yes
-```
 In the host terminal generate ssh key:
 
 ```
@@ -82,25 +79,12 @@ Now try logging into the machine, with:
 ```
 ssh -p 2222 username@localhost
 ```
-and check to make sure that only the key(s) you wanted were added.
-
-you may need to type your passwd.
-
-Then modify again the sshd_config file :
-
-```
-sudo vim /etc/ssh/sshd_config 
-```
-
-and pass"PasswordAuthentification yes" to no.
 
 restart ssh service : 
 
 ```
 sudo service ssh restart
 ```
-
-You can now exit from the connection and reconnect, this time you won't need to type your passwd.
 
 ## PARTIE 3 : Firewall
 
