@@ -3,27 +3,23 @@
 
 ## PARTIE 1 : Installation
 
-I recommand using my script to install the Vm, if you want to understand whats happening you can read it, but it's very simple.
+I recommand using the script "CreationVm" to install the Vm, if you want to understand whats happening you can read it, it's very simple.
 
-During the installation
+During the installation :
 
-create * 4.501gb partition for /
-	   * 1gb for /swap
-	   * rest for /home
-
-Do not install firefox or anything useless
+* 4.501gb partition for /
+* 1gb for /swap
+* rest for /home
 
 ```
-apt install -y neovim sudo net-tools iptables-persistent fail2ban sendmail apache2 git network-manager
+apt install -y neovim sudo iptables-persistent fail2ban sendmail apache2 git
 ```
 
 create a new interfaces : 
 
 ```
-vim /etc/network/interfaces
+nvim /etc/network/interfaces
 ```
-
-Add this content :
 
 ```
 # This file describes the network interfaces available on your system
@@ -36,22 +32,19 @@ auto lo
 iface lo inet loopback
 
 # The primary network interface
-allow-hotplug enp0s3
-iface enp0s3 inet dhcp
-
-allow-hotplug enp0s8
-iface enp0s8 inet static
-address 192.168.56.3
-netmask 255.255.255.252
+auto enp0s3
+iface enp0s3 inet static
+	address 10.11.19.93/30
+	gateway 10.11.254.254
 ```
 
 create a new user with a home, a specified shell, and a specific group :
 
-or you can use the Script.
-
 ```
 sudo useradd -g sudo -s /bin/bash -m username
 ```
+
+or you can use the Script CreateUser.
 
 reboot
 

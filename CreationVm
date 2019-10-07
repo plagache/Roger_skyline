@@ -58,6 +58,7 @@ clear
 read -r -p "The Vm was successfully created.
 			Would you like to run the Vm right now? [y/N]
 			" response
+
 case "$response" in
     [yY][eE][sS]|[yY])
 
