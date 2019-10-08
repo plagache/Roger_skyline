@@ -31,6 +31,8 @@ Then we need to change our network interface to static :
 nvim /etc/network/interfaces
 ```
 
+to know your gateway : ```traceroute google.com```
+
 ```
 # This file describes the network interfaces available on your system
 # and how to activate them. For more information, see interfaces(5).
@@ -382,7 +384,7 @@ sudo vim /etc/crontab
 ```
 
 
-## PARTIE 9 : WEB
+## PARTIE 9 : SSL
 
 Generate new SSL key :
 
@@ -470,3 +472,54 @@ The site will be accessible from the IP of your machine. (static IP https://192.
 If you didnt change path for the site, you can put the files in /var/www/html.
 
 Maybe sudo chown -R /var/www/html.
+
+## PARTIE 10 : WEB
+
+For this part you only need a directory with all the file of your web application.
+
+On the server machine create a directory for the Webhooks.
+
+Then ```git init --bare```
+
+it will create files in the directory.
+
+then ```cd hooks```
+
+create a script named ``` post-receive ```
+
+and fill it with :
+
+```
+#!/bin/bash
+while read oldrev newrev ref
+do
+    if [[ $ref =~ .*/master$ ]];
+    then
+        echo "Master ref received.  Deploying master branch to production..."
+        git --work-tree=/home/username/web-app --git-dir=/home/username/repo checkout -f
+    else
+        echo "Ref $ref successfully received.  Doing nothing: only the master branch may be deployed on this server."
+    fi
+done
+```
+
+and don't forget to make it executable ``` chmod +x post-receive ```
+
+We need to modify ``` sudo nvim /etc/apache2/apache2.conf ```
+
+and replace the directory : ``` <Directory /home/username/web-app> ```
+
+then we go on the real repository with the web application.
+
+we initialize it with ``` git init ```
+
+and add the remote name linked to the webhooks ``` git remote add $remotename ssh://username@10.12.19.93:2222/home/username/repo ```
+
+it's done.
+
+now when you just need to push on the remote name you linked before.
+```git add .```
+``` git commit -m " commit text" ```
+``` git push $remotename master ```
+
+it will automaticaly update the server and the files.
