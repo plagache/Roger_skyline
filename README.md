@@ -75,18 +75,18 @@ then copy the key to your machine serveur :
 ssh-copy-id -p 2222 -i ~/.ssh/id_rsa.pub username@localhost
 ```
 
-Now try logging into the machine, with:
-
-```
-ssh -p 2222 username@localhost
-```
-
 Finally we can disable the access with password,    ``` PasswordAuthentification no ```
 
 restart ssh service : 
 
 ```
 sudo service ssh restart
+```
+
+Now try logging into the machine, with:
+
+```
+ssh -p 2222 username@localhost
 ```
 
 ## PARTIE 3 : Firewall
@@ -508,6 +508,8 @@ and don't forget to make it executable ``` chmod +x post-receive ```
 We need to modify ``` sudo nvim /etc/apache2/apache2.conf ```
 
 and replace the directory : ``` <Directory /home/username/web-app> ```
+
+also modify ``` sudo nvim /etc/apache2/site-available/000-conf```
 
 then we go on the real repository with the web application.
 
