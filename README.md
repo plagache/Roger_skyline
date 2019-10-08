@@ -3,7 +3,7 @@
 
 ## PARTIE 1 : Installation
 
-I recommand using the script "CreationVm" to install the Vm, if you want to understand whats happening you can read it, it's very simple.
+I recommand using the script "CreationVm" to install the Vm, if you want to understand whats happening you just need to read the script, it's very simple.
 
 During the installation :
 
@@ -25,7 +25,7 @@ sudo useradd -g sudo -s /bin/bash -m username
 
 or you can use the Script CreateUser.
 
-create a new interfaces : 
+Then we need to change our network interface to static : 
 
 ```
 nvim /etc/network/interfaces
@@ -59,8 +59,8 @@ sudo nvim /etc/ssh/sshd_config
 ```
 
 * First we need to change the default port, ``` port 2222 ```
-* Then Disable the access with password,    ``` PasswordAuthentification no ```
-* and finaly prevent root login :			  ``` PermitRootlogin no ```
+* Then disable the access with password,    ``` PasswordAuthentification no ```
+* and finaly prevent root login :		    ``` PermitRootlogin no ```
 
 In the host terminal generate ssh key:
 
@@ -122,11 +122,11 @@ iptables -P FORWARD DROP
 
 iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
-iptables -A INPUT -p tcp -i enp0s8 --dport 2222 -j ACCEPT
+iptables -A INPUT -p tcp -i enp0s3 --dport 2222 -j ACCEPT
 
-iptables -A INPUT -p tcp -i enp0s8 --dport 80 -j ACCEPT
+iptables -A INPUT -p tcp -i enp0s3 --dport 80 -j ACCEPT
 
-iptables -A INPUT -p tcp -i enp0s8 --dport 443 -j ACCEPT
+iptables -A INPUT -p tcp -i enp0s3 --dport 443 -j ACCEPT
 
 iptables -A OUTPUT -m conntrack ! --ctstate INVALID -j ACCEPT
 

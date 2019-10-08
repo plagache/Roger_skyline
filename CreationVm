@@ -7,11 +7,11 @@ read -p "What is the name of the VM you want to create ?
 		" vmname
 clear
 
-read -p "What is the path where you want to create the Vm ?
+read -e -p "What is the path where you want to create the Vm ?
 		" vmpath
 clear
 
-read -p "What is the path for the iso of the Vm ?
+read -e -p "What is the path for the iso of the Vm ?
 		" isopath
 clear
 
@@ -61,8 +61,6 @@ read -r -p "The Vm was successfully created.
 
 case "$response" in
     [yY][eE][sS]|[yY])
-
-printf "Running Vm.\n"
 
 VBoxManage startvm $vmname
 
