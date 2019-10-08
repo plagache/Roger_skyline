@@ -59,8 +59,7 @@ sudo nvim /etc/ssh/sshd_config
 ```
 
 * First we need to change the default port, ``` port 2222 ```
-* Then disable the access with password,    ``` PasswordAuthentification no ```
-* and finaly prevent root login :		    ``` PermitRootlogin no ```
+* Then prevent root login : ``` PermitRootlogin no ```
 
 In the host terminal generate ssh key:
 
@@ -79,6 +78,8 @@ Now try logging into the machine, with:
 ```
 ssh -p 2222 username@localhost
 ```
+
+Finally we can disable the access with password,    ``` PasswordAuthentification no ```
 
 restart ssh service : 
 
