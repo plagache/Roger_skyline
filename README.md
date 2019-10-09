@@ -281,6 +281,11 @@ The command to disable the useless service.
 systemctl disable <services inutiles>
 ```
 
+sudo systemctl disable console-setup.service
+sudo systemctl disable keyboard-setup.service
+sudo systemctl disable apt-daily.timer
+sudo systemctl disable apt-daily-upgrade.timer
+
 ## PARTIE 7 : Script update
 
 Create the script :
@@ -328,8 +333,8 @@ chmod +x update.sh
 Then add the following to /etc/crontab
 
 ```
-0 4	* * 1	root	/home/USER/update.sh  >> /var/log/update_script.log
-@reboot		root	/home/USER/update.sh  >> /var/log/update_script.log
+0 4	* * 1	root	/home/USER/update.sh
+@reboot		root	/home/USER/update.sh
 ```
 
 you can check if cron as work properly with 
@@ -349,7 +354,7 @@ cp /etc/crontab /home/USER/tmp
 Create the template for your mail:
 
 ```
-vim /home/USER/email.txt
+vim /home/$username/email.txt
 ```
 
 Then create the script :
@@ -358,12 +363,12 @@ vim /home/USER/watch_script.sh
 
 ```
 #!/bin/bash
-cat /etc/crontab > /home/USER/new
+cat /etc/crontab > /home/$username/new
 DIFF=$(diff new tmp)
 if [ "$DIFF" != "" ]; then
 	sudo sendmail ROOT@MAIL.com < /home/USER/email.txt
-	rm -rf /home/USER/tmp
-	cp /home/USER/new /home/USER/tmp
+	rm -rf /home/$username/tmp
+	cp /home/$username/new /home/$username/tmp
 fi
 ```
 
@@ -391,87 +396,109 @@ Generate new SSL key :
 ```
 sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/roger-skyline.com.key -out /etc/ssl/certs/roger-skyline.com.crt
 ```
-Add the following request.
+Add the following request. most important server name : Server_IP_address
 
-Then :
+Then we need to configure apache to use ssl
+
+Create a new snippet in the ```/etc/apache2/conf-available``` directory. We will name the file ```ssl-params.conf``` to make its purpose clear:
+
+``` sudo nano /etc/apache2/conf-available/ssl-params.conf ```
+
+and add the folowing content to the file we just created :
+
+```
+SSLCipherSuite EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH
+SSLProtocol All -SSLv2 -SSLv3 -TLSv1 -TLSv1.1
+SSLHonorCipherOrder On
+# Disable preloading HSTS for now.  You can use the commented out header line that includes
+# the "preload" directive if you understand the implications.
+# Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+Header always set X-Frame-Options DENY
+Header always set X-Content-Type-Options nosniff
+# Requires Apache >= 2.4
+SSLCompression off
+SSLUseStapling on
+SSLStaplingCache "shmcb:logs/stapling-cache(150000)"
+# Requires Apache >= 2.4.11
+SSLSessionTickets Off
+```
+
+Next, let's modify ``` /etc/apache2/sites-available/default-ssl.conf ```
+
+let's back up the original SSL Virtual Host file :
+```
+sudo cp /etc/apache2/sites-available/default-ssl.conf /etc/apache2/sites-available/default-ssl.conf.bak
+```
 
 ```
 sudo vim /etc/apache2/sites-available/default-ssl.conf
 ```
 
-Then modify only the SSL ligne with the good path for the keys :
+After making these changes, your server block should look similar to this:
 
 ```
 <IfModule mod_ssl.c>
- <VirtualHost _default_:443>       
-                ServerAdmin webmaster@localhost
-                DocumentRoot /var/www/html
+        <VirtualHost _default_:443>
+                ServerAdmin your_email@example.com
+                ServerName 10.12.19.93
+
+                DocumentRoot /home/$username/web-app
 
                 ErrorLog ${APACHE_LOG_DIR}/error.log
                 CustomLog ${APACHE_LOG_DIR}/access.log combined
 
-                #Include conf-available/serve-cgi-bin.conf
-
-                #   SSL Engine Switch:
-                #   Enable/Disable SSL for this virtual host.
                 SSLEngine on
+
                 SSLCertificateFile      /etc/ssl/certs/roger-skyline.com.crt
                 SSLCertificateKeyFile /etc/ssl/private/roger-skyline.com.key
-                #
-                #SSLCertificateFile      /etc/ssl/certs/ssl-cert-snakeoil.pem
-                #SSLCertificateKeyFile /etc/ssl/private/ssl-cert-snakeoil.key
 
-......................
-.......................
+                <FilesMatch "\.(cgi|shtml|phtml|php)$">
+                                SSLOptions +StdEnvVars
+                </FilesMatch>
+                <Directory /usr/lib/cgi-bin>
+                                SSLOptions +StdEnvVars
+                </Directory>
 
- </VirtualHost>
+        </VirtualHost>
 </IfModule>
 ```
+
+To adjust the unencrypted Virtual Host file to redirect all traffic to be SSL encrypted, open the ```/etc/apache2/sites-available/000-default.conf``` file:
+
+```
+sudo nvim /etc/apache2/sites-available/000-default.conf
+```
+Inside, within the VirtualHost configuration blocks, add a Redirect directive, pointing all traffic to the SSL version of the site:
+```
+<VirtualHost *:80>
+        . . .
+
+        Redirect "/" "https://10.12.19.93/"
+
+        . . .
+</VirtualHost>
+
+```
+
 
 Finaly test the cmd :
 
 ```
-sudo apachectl configtest
 sudo a2enmod ssl
+sudo a2enmod headers
 sudo a2ensite default-ssl
+sudo a2enconf ssl-params
+sudo apache2ctl configtest
 ```
 
 Reboot services :
 
 ```
-sudo systemctl restart apache2.service
+sudo systemctl restart apache2
 ```
 
-Make a copy of your configuration :
+The site will be accessible from the IP of your machine. (static IP https://10.12.19.93).
 
-```
-sudo cp /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/001-default.conf
-```
-
-modify the files :
-
-```
-sudo vim /etc/apache2/sites-available/001-default.conf
-```
-
-Change ServerName with what ever you want and add DocumentRoot to the path of you website.
-
-Activate new configuration :
-
-```
-# Deactivate the old one
-a2dissite 000-default.conf
-# Activate new conf file
-a2ensite 001-site.conf
-# reload service
-systemctl reload apache2
-```
-
-The site will be accessible from the IP of your machine. (static IP https://192.168.56.3).
-
-If you didnt change path for the site, you can put the files in /var/www/html.
-
-Maybe sudo chown -R /var/www/html.
 
 ## PARTIE 10 : WEB
 
