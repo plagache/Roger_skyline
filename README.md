@@ -14,7 +14,7 @@ During the installation :
 First we need to install our tools :
 
 ```
-apt install -y neovim sudo iptables-persistent fail2ban sendmail apache2 git
+apt install -y neovim sudo ufw fail2ban sendmail apache2 git portsentry openssl
 ```
 
 Then we need to create a new user with a specific group, a specified shell, and a home :
@@ -25,11 +25,7 @@ sudo useradd -g sudo -s /bin/bash -m username
 
 or you can use the Script CreateUser.
 
-Then we need to change our network interface to static : 
-
-```
-nvim /etc/network/interfaces
-```
+Then we need to change our network interface to static in the files  ```nvim /etc/network/interfaces``` :
 
 to know your gateway : ```traceroute google.com```
 
@@ -54,11 +50,7 @@ You may now reboot and loggued as the new user.(we restart the networking-servic
 
 ## PARTIE 2 : SSH
 
-For the ssh part we have certain rules to respect
-
-```
-sudo nvim /etc/ssh/sshd_config
-```
+For the ssh part we have certain rules to respect ```sudo nvim /etc/ssh/sshd_config``` :
 
 * First we need to change the default port, ``` port 2222 ```
 * Then prevent root login : ``` PermitRootlogin no ```
@@ -91,88 +83,28 @@ ssh -p 2222 username@localhost
 
 ## PARTIE 3 : Firewall
 
-The firewall parts use iptable rules. you can list the rules with cmd :
+For the firewall part, We will use UFW.
 
 ```
-sudo iptables -L
+sudo ufw status
+sudo ufw enable
 ```
 
-create the files :
+Setup firewall rules : 
+* SSH ```sudo ufw allow 2222/tcp```
+* http ```sudo ufw allow 80/tcp```
+* https ``` sudo ufw allow 443```
 
-```
-sudo vim /etc/network/if-pre-up.d/iptables
-```
-
-Add the news rules to the files :
-
-```
-#!/bin/bash
-
-iptables-restore < /etc/iptables.test.rules
-
-iptables -F
-iptables -X
-iptables -t nat -F
-iptables -t nat -X
-iptables -t mangle -F
-iptables -t mangle -X
-
-iptables -P INPUT DROP
-
-iptables -P OUTPUT DROP
-
-iptables -P FORWARD DROP
-
-iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-
-iptables -A INPUT -p tcp -i enp0s3 --dport 2222 -j ACCEPT
-
-iptables -A INPUT -p tcp -i enp0s3 --dport 80 -j ACCEPT
-
-iptables -A INPUT -p tcp -i enp0s3 --dport 443 -j ACCEPT
-
-iptables -A OUTPUT -m conntrack ! --ctstate INVALID -j ACCEPT
-
-iptables -I INPUT -i lo -j ACCEPT
-
-iptables -A INPUT -j LOG
-
-iptables -A FORWARD -j LOG
-
-iptables -I INPUT -p tcp --dport 80 -m connlimit --connlimit-above 10 --connlimit-mask 20 -j DROP
-
-exit 0
-```
-
-Make it executable.
-```
-sudo chmod+x /etc/network/if-pre-up.d/iptables
-```
-
-The iptable rules are clean with reboot. the files will allow the system to load them at each reboot. Modify the port in consequences
 
 ## PARTIE 4 : DOS
 
-Create a log file for the Apache server.
-
-```
-sudo touch /var/log/apache2/server.log
-```
 
 The fail2ban package have protection against minor attacks. 
-You can activate them by creating a configuration files.
-
-```
-sudo vim /etc/fail2ban/jail.local
-```
+You can activate them by creating a configuration files ```sudo vim /etc/fail2ban/jail.local```.
 
 Then add the following rules :
 
 ```
-[DEFAULT]
-destemail = USER@student.le-101.fr
-sender = root@roger-skyline.fr
-
 [sshd]
 port = 2222
 enabled = true
@@ -225,11 +157,7 @@ bantime = 300
 action = iptables[name=HTTP, port=http, protocol=tcp]
 ```
 
-then create a file for the DOS attacks :
-
-```
-sudo vim /etc/fail2ban/filter.d/http-get-dos.conf
-```
+then create a file for the DOS attacks ``` sudo vim /etc/fail2ban/filter.d/http-get-dos.conf``` :
 
 And add this content:
 
@@ -266,6 +194,28 @@ netstat -paunt
 
 Then you will protect the open port from being view in nmap.
 
+edit the file ``` /etc/default/portsentry ``` :
+
+```
+TCP_MODE="atcp"
+UDP_MODE="audp"
+```
+
+also edit the file ``` /etc/portsentry/portsentry.conf ``` :
+
+```
+BLOCK_UDP="1"
+BLOCK_TCP="1"
+
+comment the current KILL_ROUTE and uncomment the following :
+KILL_ROUTE="/sbin/iptables -I INPUT -s $TARGET$ -j DROP"
+
+#KILL_HOSTS_DENY="ALL: $TARGET$ : DENY
+```
+
+Finaly restart the services with :
+
+``` sudo service portsentry restart```
 
 ## PARTIE 6 : Useless Service
 
@@ -280,19 +230,16 @@ The command to disable the useless service.
 ```
 systemctl disable <services inutiles>
 ```
-
+```
 sudo systemctl disable console-setup.service
 sudo systemctl disable keyboard-setup.service
 sudo systemctl disable apt-daily.timer
 sudo systemctl disable apt-daily-upgrade.timer
+```
 
 ## PARTIE 7 : Script update
 
-Create the script :
-
-```
-vim /home/USER/update.sh
-```
+Create the script ```sudo nvim /home/$username/update.sh ``` :
 
 ```
 #! /bin/bash
@@ -333,8 +280,8 @@ chmod +x update.sh
 Then add the following to /etc/crontab
 
 ```
-0 4	* * 1	root	/home/USER/update.sh
-@reboot		root	/home/USER/update.sh
+0 4	* * 1	root	/home/$username/update.sh
+@reboot		root	/home/$username/update.sh
 ```
 
 you can check if cron as work properly with 
@@ -348,7 +295,7 @@ grep CRON /var/log/syslog
 Create a copy of your crontab :
 
 ```
-cp /etc/crontab /home/USER/tmp
+cp /etc/crontab /home/$username/tmp
 ```
 
 Create the template for your mail:
@@ -357,9 +304,7 @@ Create the template for your mail:
 vim /home/$username/email.txt
 ```
 
-Then create the script :
-
-vim /home/USER/watch_script.sh
+Then create the script ``` sudo nvim /home/USER/watch_script.sh ``` :
 
 ```
 #!/bin/bash
@@ -378,11 +323,7 @@ Make it executable :
 chmod +x watch_script.sh
 ```
 
-Then add the following rule to crontab :
-
-```
-sudo vim /etc/crontab
-```
+Then add the following rule to crontab ``` sudo nvim /etc/crontab ``` :
 
 ```
 0  0	* * *	root	/home/USER/watch_script.sh
@@ -400,11 +341,8 @@ Add the following request. most important server name : Server_IP_address
 
 Then we need to configure apache to use ssl
 
-Create a new snippet in the ```/etc/apache2/conf-available``` directory. We will name the file ```ssl-params.conf``` to make its purpose clear:
-
-``` sudo nano /etc/apache2/conf-available/ssl-params.conf ```
-
-and add the folowing content to the file we just created :
+Create a new snippet in the ```/etc/apache2/conf-available``` directory.
+We will name the file ```ssl-params.conf``` to make its purpose clear ``` sudo nvim /etc/apache2/conf-available/ssl-params.conf ``` :
 
 ```
 SSLCipherSuite EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH
@@ -423,16 +361,12 @@ SSLStaplingCache "shmcb:logs/stapling-cache(150000)"
 SSLSessionTickets Off
 ```
 
-Next, let's modify ``` /etc/apache2/sites-available/default-ssl.conf ```
-
 let's back up the original SSL Virtual Host file :
 ```
 sudo cp /etc/apache2/sites-available/default-ssl.conf /etc/apache2/sites-available/default-ssl.conf.bak
 ```
 
-```
-sudo vim /etc/apache2/sites-available/default-ssl.conf
-```
+Next, let's modify ``` sudo nvim /etc/apache2/sites-available/default-ssl.conf ```
 
 After making these changes, your server block should look similar to this:
 
@@ -463,11 +397,8 @@ After making these changes, your server block should look similar to this:
 </IfModule>
 ```
 
-To adjust the unencrypted Virtual Host file to redirect all traffic to be SSL encrypted, open the ```/etc/apache2/sites-available/000-default.conf``` file:
+To adjust the unencrypted Virtual Host file to redirect all traffic to be SSL encrypted, open the ``` sudo nvim /etc/apache2/sites-available/000-default.conf ``` files.
 
-```
-sudo nvim /etc/apache2/sites-available/000-default.conf
-```
 Inside, within the VirtualHost configuration blocks, add a Redirect directive, pointing all traffic to the SSL version of the site:
 ```
 <VirtualHost *:80>
@@ -481,7 +412,7 @@ Inside, within the VirtualHost configuration blocks, add a Redirect directive, p
 ```
 
 
-Finaly test the cmd :
+Finaly :
 
 ```
 sudo a2enmod ssl
