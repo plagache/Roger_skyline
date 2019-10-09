@@ -1,0 +1,8 @@
+#!/bin/bash
+cat /etc/crontab > /home/$username/new
+DIFF=$(diff new tmp)
+if [ "$DIFF" != "" ]; then
+	sudo sendmail ROOT@MAIL.com < /home/USER/email.txt
+	rm -rf /home/$username/tmp
+	cp /home/$username/new /home/$username/tmp
+fi
