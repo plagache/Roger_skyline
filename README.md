@@ -91,7 +91,7 @@ sudo ufw enable
 ```
 
 Setup firewall rules : 
-* SSH ```sudo ufw allow 2222/tcp```
+* SSH ```sudo ufw limit 2223```
 * http ```sudo ufw allow 80/tcp```
 * https ``` sudo ufw allow 443```
 
@@ -109,12 +109,8 @@ Then add the following rules :
 port = 2222
 enabled = true
 maxretry = 5
-findtime = 120
+findtime = 60
 bantime = 60
-
-[sshd-ddos]
-port = 2222
-enabled = true
 
 [recidive]
 enabled = true
@@ -266,7 +262,7 @@ apt-get clean >>/var/log/update_script.log.
 
 apt-get -y autoremove >>/var/log/update_script.log.
 
-printf "\33[92mcleaning done.\n\33[93mYou can see the log in /var/log/update_script.log\n"
+printf "\33[92mcleaning done.\n\33[93mYou can see the log in /var/log/update_script.log\n\33[0m"
 
 ## tail -f /var/log/update_script.log
 ```
