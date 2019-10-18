@@ -92,8 +92,8 @@ sudo ufw enable
 
 Setup firewall rules : 
 * SSH ```sudo ufw limit 2222```
-* http ```sudo ufw limit 80```
-* https ``` sudo ufw limit 443```
+* http ```sudo ufw allow 80```
+* https ``` sudo ufw allow 443```
 
 
 ## PARTIE 4 : DOS
@@ -119,7 +119,7 @@ enabled = true
 enabled = true
 port = http, https
 filter = apache-auth
-logpath = /var/log/apache2*/*error.log
+logpath = /var/log/apache2*/*.log
 maxretry = 6
 findtime = 600
 
@@ -131,7 +131,7 @@ enabled = true
 enabled  = true
 port     = http,https
 filter   = apache-overflows
-logpath  = /var/log/apache2*/*error.log
+logpath  = /var/log/apache2*/*.log
 maxretry = 2
 
 [apache-badbots]
@@ -139,14 +139,14 @@ maxretry = 2
 enabled  = true
 port     = http,https
 filter   = apache-badbots
-logpath  = /var/log/apache2*/*error.log
+logpath  = /var/log/apache2*/*.log
 maxretry = 2
 
 [http-get-dos]
 enabled = true
 port = http,https
 filter = http-get-dos
-logpath = /var/log/apache2/server.log
+logpath = /var/log/apache2/access.log
 maxretry = 100
 findtime = 300
 bantime = 300
