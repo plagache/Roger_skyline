@@ -91,9 +91,9 @@ sudo ufw enable
 ```
 
 Setup firewall rules : 
-* SSH ```sudo ufw limit 2223```
-* http ```sudo ufw allow 80/tcp```
-* https ``` sudo ufw allow 443```
+* SSH ```sudo ufw limit 2222```
+* http ```sudo ufw limit 80```
+* https ``` sudo ufw limit 443```
 
 
 ## PARTIE 4 : DOS
@@ -190,14 +190,14 @@ netstat -paunt
 
 Then you will protect the open port from being view in nmap.
 
-edit the file ``` /etc/default/portsentry ``` :
+edit the file ```sudo nvim /etc/default/portsentry ``` :
 
 ```
 TCP_MODE="atcp"
 UDP_MODE="audp"
 ```
 
-also edit the file ``` /etc/portsentry/portsentry.conf ``` :
+also edit the file ```sudo nvim /etc/portsentry/portsentry.conf ``` :
 
 ```
 BLOCK_UDP="1"
@@ -244,9 +244,9 @@ Create the script ```sudo nvim /home/$username/update.sh ``` :
 
 printf "\33[90mupdate running\n"
 
-apt-get update >/var/log/update_script.log.
+apt-get update >/var/log/update_script.log
 
-apt-get -y upgrade >>/var/log/update_script.log.
+apt-get -y upgrade >>/var/log/update_script.log
 
 ## add dist-upgrade for distribution upgrade ##
 
@@ -256,11 +256,11 @@ printf "\33[92mupdate finish\n"
 
 printf "\33[90mcleaning start\n"
 
-apt-get autoclean >>/var/log/update_script.log.
+apt-get autoclean >>/var/log/update_script.log
 
-apt-get clean >>/var/log/update_script.log.
+apt-get clean >>/var/log/update_script.log
 
-apt-get -y autoremove >>/var/log/update_script.log.
+apt-get -y autoremove >>/var/log/update_script.log
 
 printf "\33[92mcleaning done.\n\33[93mYou can see the log in /var/log/update_script.log\n\33[0m"
 
