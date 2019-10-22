@@ -319,6 +319,13 @@ Make it executable :
 chmod +x watch_script.sh
 ```
 
+don't forget to modify ``` sudo nvim /etc/hosts ``` :
+```
+127.0.0.1       localhost.localdomain localhost debian
+```
+In order to make sendmail works.
+
+
 Then add the following rule to crontab ``` sudo nvim /etc/crontab ``` :
 
 ```
