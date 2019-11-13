@@ -46,7 +46,7 @@ iface enp0s3 inet static
 	gateway 10.11.254.254
 ```
 
-You may now reboot and loggued as the new user.(we restart the networking-services in the same time)
+You may now reboot and log as the new user.(we restart the networking-services in the same time)
 
 ## PARTIE 2 : SSH
 
